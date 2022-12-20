@@ -3,7 +3,7 @@
 html {
     background-color:rgb(254, 246, 233) ;
     font-family: Arial, Helvetica, sans-serif;
-    padding:20px
+    padding:10px;
   
 }
 
@@ -35,4 +35,3 @@ p {
     justify-content: center;
     font-size: larger;
   };
-
