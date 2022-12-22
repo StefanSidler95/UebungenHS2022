@@ -1,4 +1,4 @@
-// Alex Bura, Dominic Schär, Stefan Sidler / FHNW Institut Geomatik / Version 2.0 / 20.12.2022
+// Alex Bura, Dominic Schär, Stefan Sidler / FHNW Institut Geomatik / Version 3.0 / 22.12.2022
 
 import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
@@ -32,10 +32,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
-  const [start_lat, setStart_lat] = useState(50);
-  const [start_lng, setStart_lng] = useState(30);
-  const [end_lat, setEnd_lat] = useState(20);
-  const [end_lng, setEnd_lng] = useState(-100);
+  const [start_lat, setStart_lat] = useState(0);
+  const [start_lng, setStart_lng] = useState(0);
+  const [end_lat, setEnd_lat] = useState(0);
+  const [end_lng, setEnd_lng] = useState(0);
   const [tempo, setTempo] = useState(1000);
   const points_num = 100
   const Boundingbox = [[-90, -180], [90, 180]]
@@ -128,17 +128,23 @@ function App() {
 
 
     // nachfolgende if-Blöcke kontrollieren, ob die Eingaben in die Textfelder gültig sind
-    if (start_lat === end_lat && start_lng === end_lng) {
-      alert('Fehler: Start- und Endpunkt dürfen nicht identisch sein.');
-      reload();
+    // Start- und Endpunkt dürfen nicht gleich sein (alle Koordinaten = 0 wird akzeptiert, da dies die default-Werte sind)
+    if (start_lat !== 0 || start_lng !== 0 || end_lat !== 0 || end_lng !== 0) {
+      if (start_lat === end_lat && start_lng === end_lng) {
+        alert('Fehler: Start- und Endpunkt dürfen nicht identisch sein.');
+        reload();
+      }
     }
-
-    if (start_lat > 90 || end_lat > 90) {
+    
+    // Überprüfung auf gültige Koordinatenwerte
+    if (-90 <= start_lat && start_lat <= 90 && -90 <= end_lat && end_lat <= 90) {
+    } else {
       alert('Fehler: Breitengrade müssen zwischen -90 und 90 sein.');
       reload();
     }
-
-    if (start_lng > 180 || end_lng > 180) {
+    
+    if (-180 <= start_lng && start_lng <= 180 && -180 <= end_lng && end_lng <= 180) {
+    } else {
       alert('Fehler: Längengrade müssen zwischen -180 und 180 sein.');
       reload();
     }
@@ -160,7 +166,7 @@ function App() {
       {!data && <>
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <h3><br/>Wähle zwei Flughäfen aus der Liste aus, um eine geodätische Linie und die ungefähre Flugzeit zu berechnen.</h3>
+            <h2>Wähle zwei Flughäfen aus der Liste aus, um eine geodätische Linie und die ungefähre Flugzeit zu berechnen.</h2>
           <Grid>
           <Grid item xs={6}>
             <p>Startpunkt (blau)</p>              
@@ -171,7 +177,7 @@ function App() {
           </Grid>
           </Grid>
           <Grid item xs = {12}>
-            <p>Alternativ können die Koordinaten unten von Hand eingegeben oder geändert werden.</p>
+            <p><br/>Alternativ können die Koordinaten von Hand eingegeben werden.</p>
           </Grid>
           <Grid item xs = {3}>
             <Textfield fullWidth label="Start Lat" variant="outlined" style={{marginBottom: '1rem'}} inputProps={{ type: 'number'}} defaultValue={start_lat} onChange={ (event) => (setStart_lat(event.target.value))}/> 
@@ -183,21 +189,21 @@ function App() {
           </Grid>
           <Grid item xs={12}>
             <p>Mit "Berechnung starten" wird die geodätische Linie zwischen folgenden Punkten berechnet: <dev style={{color: 'blue'}}>{start_lat} / {start_lng}</dev> und <dev style={{color: 'red'}}>{end_lat} / {end_lng}</dev></p>
-            <p>Die gewählten Positionen sind auf der unteren Karte abgebildet</p>
+            <p>Die gewählten Positionen sind auf der unteren Karte abgebildet.</p>
           </Grid>
           <Grid item xs={12}>
-            <Button variant="contained"  onClick={() => { do_download() }}>Berechnung starten</Button>
-            <Button variant="contained" style={{marginLeft: '1rem'}} onClick={() => { reload() }}>Reset</Button>
+            <Button variant="contained" size="large" onClick={() => { do_download() }}>Berechnung starten</Button>
+            <Button variant="contained" size="large"style={{marginLeft: '1rem'}} onClick={() => { reload() }}>Reset</Button>
           </Grid>   
             <Grid item xs = {12}>
             <MapContainer center={[24, 0]} zoom={2} scrollWheelZoom={false} maxBounds={Boundingbox} minZoom={2} style={{ height: "500px", width: "100%"}} >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors' />
+              <TileLayer noWrap={true} url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors' />
               <Marker position={[start_lat, start_lng]}/>
               <Marker position={[end_lat, end_lng]} icon={redMarker}/>
             </MapContainer>
             </Grid>
             <Grid item xs = {12} >
-              <h4>Erstellt von Alex Bura, Dominic Schär und Stefan Sidler / FHNW Institut Geomatik / Version 2.0 / 20.12.2022</h4>
+              <h4>Erstellt von Alex Bura, Dominic Schär und Stefan Sidler / FHNW Institut Geomatik / Version 3.0 / 22.12.2022</h4>
             </Grid>
           </Grid>
         </>}
@@ -213,28 +219,28 @@ function App() {
       {data &&  <>      
                   <Grid container spacing={2}> 
                     <Grid item xs = {12}>
-                      <h3>Ausgabe der Distanz und ungefähren Flugzeit zwischen den beiden Destinationen</h3>
+                      <h2>Ausgabe der Distanz und ungefähren Flugzeit zwischen den beiden Orten.</h2>
                     </Grid>
                     <Grid item xs = {6}>
-                      <p>Durchschnittliche Fluggeschwindigkeit (km/h) wälen</p>
-                      <Slider defaultValue={1000} max={2000} min={10} aria-label="Default" valueLabelDisplay="auto" onChange={ (event) => (setTempo(event.target.value)) }/>
+                      <p>Durchschnittliche Fluggeschwindigkeit (km/h) wählen:</p>
+                      <Slider defaultValue={1000} max={2000} min={100} aria-label="Default" valueLabelDisplay="auto" onChange={ (event) => (setTempo(event.target.value)) }/>
                     </Grid>
                     <Grid item xs = {12}>
-                      <h3>Die Distanz beträgt {distance_km} km. <br/> Die Fluggzeit mit einer Fluggeschwindigkeit von {tempo} km/h beträgt etwa {time} Stunde(n).</h3>
+                      <h3>Die Distanz beträgt <strong>{distance_km} km</strong>. <br/> Die Fluggzeit mit einer Fluggeschwindigkeit von <strong>{tempo} km/h</strong> beträgt etwa <strong>{time} Stunde(n)</strong>.</h3>
                     </Grid>
                     <Grid item xs = {12}>
-                      <Button variant="contained" onClick={() => { reload() }}>Neue Berechnung durchführen</Button>
+                      <Button variant="contained" size="large" onClick={() => { reload() }}>Neue Berechnung durchführen</Button>
                     </Grid>
                     <Grid item xs = {12}>
                       <MapContainer center={[24, 0]} zoom={2} scrollWheelZoom={false} maxBounds={Boundingbox} minZoom={2} style={{ height: "500px", width: "100%"}} >
-                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors' />
+                      <TileLayer noWrap={true} url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors' />
                       <Marker position={[start_lat, start_lng]}><Popup>Startpunkt <br/>{start_lat} / {start_lng}</Popup></Marker>
                       <Marker position={[end_lat, end_lng]} icon={redMarker}><Popup>Endpunkt <br/>{end_lat} / {end_lng}</Popup></Marker>
                       <GeoJSON data={data} style={{ weight: 8, opacity: '80%', color: 'yellow'}}/>
                       </MapContainer>
                     </Grid>
                     <Grid item xs = {12} >
-                      <h4>Erstellt von Alex Bura, Dominic Schär und Stefan Sidler / FHNW Institut Geomatik / Version 1.0 / 19.12.2022</h4>
+                      <h4>Erstellt von Alex Bura, Dominic Schär und Stefan Sidler / FHNW Institut Geomatik / Version 3.0 / 22.12.2022</h4>
                     </Grid>
                   </Grid>
                 </>}
